@@ -1,0 +1,18 @@
+
+
+$blue: #2831c5;
+$turquoise: #44a3d4;
+$green: #15a632;
+$yellow: #e6d708;
+$red: #c50b1a;
+
+// Update Bulma's global variables
+$primary: $turquoise;
+$link: $blue;
+$widescreen-enabled: false;
+$fullhd-enabled: false;
+
+// Update some of Bulma's component variables
+$body-background-color: #E8EAE8;
+
+@import "./node_modules/bulma/bulma.sass";

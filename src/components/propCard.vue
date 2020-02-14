@@ -1,22 +1,22 @@
 <template>
     <div class="card" id="itemCard">
-        <router-link :to="route"><div  style="z-index: 10;" class="is-overlay"></div></router-link>
           <div class="card-content" style="padding: 1rem">
             <nav class="level is-mobile">
               <div class="level-left">
                 <div class="level-item">
                   <div  class="card-image is-128x128" >
-                        <img :src="item.cover || 'images/no-image.jpg'" height="128" width="128" style="object-fit: scale-down; height: 100%; margin:0">
+                        <router-link :to="route"><img :src="item.cover || 'images/no-image.jpg'" height="128" width="128" style="object-fit: scale-down; height: 100%; margin:0"></router-link>
                   </div>
                 </div>
               </div>
               <div class="level level-item">
                 <div class="level-item">
                   <h1 class="title is-6">
-                    Name:
+                    <router-link :to="route"><p class="title is-4">
                     {{item.title}}
+                    </p></router-link>
                     <br><br>
-                    Location:
+                    Lokacija:
                     {{item.location}}
                   </h1>
                 </div>
@@ -53,5 +53,7 @@ export default {
 </script>
 
 <style>
-
+  #itemCard{
+    margin-top: 1rem;
+  }
 </style>
