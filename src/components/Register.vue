@@ -37,7 +37,7 @@
           </form>
         </div>
         <footer class="card-footer">
-          <button @click="onSubmit" class="button is-info card-footer-item" style="height: auto; border-radius: 0; padding: 0.6rem">
+          <button @click="onSubmit" class="button is-primary card-footer-item" style="height: auto; border-radius: 0; padding: 0.6rem">
             <span class="has-text-weight-medium" style="font-size: 1.15rem">Potvrdi</span>
           </button>
         </footer>

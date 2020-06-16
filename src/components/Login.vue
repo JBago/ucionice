@@ -1,7 +1,7 @@
 <template>
     <div class="section">
       <div id="card-container" class="container">
-        <div class="card">
+        <div class="box">
             <div class="card-header">
               <p class="card-header-title">
                 Prijava
@@ -29,7 +29,7 @@
                 </form>
             </div>
             <footer class="card-footer">
-              <button @click="onSubmit" class="button is-info card-footer-item" style="height: auto; border-radius: 0; padding: 0.6rem">
+              <button @click="onSubmit" class="button is-primary card-footer-item" style="height: auto; border-radius: 0; padding: 0.6rem">
                 <span class="has-text-weight-medium" style="font-size: 1.15rem">Potvrdi</span>
               </button>
             </footer>

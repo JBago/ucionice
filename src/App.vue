@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <div class="navbar is-fixed-top"></div>
-    <div id="nav" class="navbar container is-fixed-top">   
+    <div id="nav" class="navbar is-dark is-fixed-top">   
       <div id="navbarBasicExample"  class="navbar-menu navbar-menu-custom ">
         <div class="navbar-start">
           <router-link to="/"  class="navbar-item nav-item-custom">
@@ -15,6 +14,9 @@
           </router-link>
            <router-link to="/browse" class="navbar-item nav-item-custom">
             <span class="is-family-primary">Učionice</span>
+          </router-link>
+          <router-link to="/create" class="navbar-item nav-item-custom">
+            <span class="is-family-primary">Dodaj</span>
           </router-link>
         </div>
         <div class="navbar-end">

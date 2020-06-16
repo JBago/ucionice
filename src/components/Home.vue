@@ -17,8 +17,6 @@
           </h2>
           <br>
           <div class="buttons is-centered">
-            <router-link to="/login"><span class="button is-rounded is-medium">Prijavi se</span></router-link>
-            <router-link to="/register"><span class="button is-success is-rounded is-medium">Registracija</span></router-link>
           </div>
         </div>
         </div>
