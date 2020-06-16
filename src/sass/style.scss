@@ -15,4 +15,4 @@ $fullhd-enabled: false;
 // Update some of Bulma's component variables
 $body-background-color: #E8EAE8;
 
-@import "./node_modules/bulma/bulma.sass";
+@import './node_modules/vue-fluent/src/lib/index.sass'
