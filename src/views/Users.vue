@@ -1,32 +1,29 @@
 <template>
     <v-container>
         <v-toolbar flat>
-            <v-btn class="mr-5" @click="isNew = dialog = true" :color="$globals.color" :dark="$globals.dark">
+            <v-btn v-if="$globals.group.role === 'OWNER' || $globals.group.role === 'MANAGER'" class="mr-5"
+                   @click="isNew = dialog = true"
+                   :color="$globals.color" :dark="$globals.dark">
                 DODAJ
             </v-btn>
             <v-toolbar-title>
-                Učionice
+                Korisnici
             </v-toolbar-title>
         </v-toolbar>
         <v-data-table :headers="headers"
                       :items="items"
                       :loading="loading"
                       :color="$globals.color">
-            <template v-slot:item.projector="{ item }">
-                <v-chip v-if="item.projector" color="success">
-                    DA
+            <template v-slot:item.approved="{ item }">
+                <v-chip v-if="item.approved" color="success">
+                    ODOBRENO
                 </v-chip>
                 <v-chip v-else color="error">
-                    NE
+                    NIJE ODOBRENO
                 </v-chip>
             </template>
-            <template v-slot:item.computer="{ item }">
-                <v-chip v-if="item.computer" color="success">
-                    DA
-                </v-chip>
-                <v-chip v-else color="error">
-                    NE
-                </v-chip>
+            <template v-slot:item.time="{ item }">
+                {{item.startDate | moment('dd.MM.YYYY HH:mm')}} - {{item.endDate | moment('dd.MM.YYYY HH:mm')}}
             </template>
             <template v-slot:item.actions="{ item }">
                 <v-btn icon @click="onEdit(item)">
@@ -63,43 +60,24 @@
             <v-card>
                 <v-card-title class="pt-0 pl-0 pr-0">
                     <v-toolbar :color="$globals.color" :dark="$globals.dark">
-                        <v-toolbar-title v-if="isNew">
-                            Dodaj učionicu
-                        </v-toolbar-title>
-                        <v-toolbar-title v-else>
-                            Uredi učionicu
+                        <v-toolbar-title>
+                            Pozovi korisnika
                         </v-toolbar-title>
                     </v-toolbar>
                 </v-card-title>
                 <v-card-text>
-                    <v-form>
-                        <v-text-field
-                                v-model="item.name"
-                                label="Ime"
-                                :color="$globals.color"
-                                :error-messages="nameErrors"
-                                required
-                                @input="$v.item.name.$touch()"
-                                @blur="$v.item.name.$touch()"
-                                outlined/>
-                        <v-text-field
-                                v-model="item.capacity"
-                                label="Kapacitet"
-                                :color="$globals.color"
-                                :error-messages="capacityErrors"
-                                required
-                                @input="$v.item.capacity.$touch()"
-                                @blur="$v.item.capacity.$touch()"
-                                outlined/>
-                        <v-switch
-                                v-model="item.projector"
-                                label="Projektor"
-                                :color="$globals.color"/>
-                        <v-switch
-                                v-model="item.computer"
-                                label="Računala"
-                                :color="$globals.color"/>
-                    </v-form>
+                    <v-autocomplete
+                            v-model="search.selected"
+                            label="Korisnik"
+                            :search-input.sync="search.query"
+                            placeholder="Pronađi korisnika"
+                            :loading="search.loading"
+                            item-text="name"
+                            :items="search.items"
+                            :color="$globals.color"
+                            return-object
+                            required
+                            outlined/>
                 </v-card-text>
                 <v-divider/>
                 <v-card-actions>
@@ -108,6 +86,37 @@
                         PONIŠTI
                     </v-btn>
                     <v-btn @click="onSubmit" text>
+                        SPREMI
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="roleDialog" width="400">
+            <v-card>
+                <v-card-title class="pt-0 pl-0 pr-0">
+                    <v-toolbar :color="$globals.color" :dark="$globals.dark">
+                        <v-toolbar-title>
+                            Uredi korisnika
+                        </v-toolbar-title>
+                    </v-toolbar>
+                </v-card-title>
+                <v-card-text>
+                    <v-select
+                            v-model="role"
+                            label="Rola"
+                            :items="roles"
+                            :color="$globals.color"
+                            return-object
+                            required
+                            outlined/>
+                </v-card-text>
+                <v-divider/>
+                <v-card-actions>
+                    <v-spacer/>
+                    <v-btn @click="roleDialog = false" text>
+                        PONIŠTI
+                    </v-btn>
+                    <v-btn @click="onSubmitRole" text>
                         SPREMI
                     </v-btn>
                 </v-card-actions>
@@ -123,26 +132,18 @@
     import {minValue, numeric, required} from "vuelidate/lib/validators";
 
     export default {
-        name: "Classrooms",
+        name: "Appointments",
         components: {Layout},
         data: function () {
             return {
                 headers: [
                     {
+                        text: "Rola",
+                        value: "role"
+                    },
+                    {
                         text: "Ime",
-                        value: "name"
-                    },
-                    {
-                        text: "Kapacitet",
-                        value: "capacity"
-                    },
-                    {
-                        text: "Projektor",
-                        value: "projector"
-                    },
-                    {
-                        text: "Računala",
-                        value: "computer"
+                        value: "user.name"
                     },
                     {
                         value: "actions",
@@ -151,17 +152,24 @@
                 ],
                 items: [],
                 loading: false,
+                search: {
+                    loading: false,
+                    query: null,
+                    selected: null,
+                    items: []
+                },
+                role: null,
                 dialog: false,
                 deleteDialog: false,
-                isNew: false,
+                roleDialog: false,
                 item: {
-
                     id: '',
                     name: '',
                     capacity: '',
                     projector: '',
                     computer: '',
                 },
+                roles: ["USER", "MANAGER"],
                 error: null
             }
         },
@@ -180,6 +188,22 @@
                     this.item.computer = '';
                     this.$v.$reset();
                 }
+            },
+            'search.query': function (value) {
+                if (this.search.loading) {
+                    return
+                }
+                this.search.loading = true;
+                this.$http
+                    .post('users/find', value)
+                    .then((response) => {
+                        this.search.items = response.data;
+                        this.search.loading = false;
+                    })
+                    .catch(() => {
+                        this.error = "Greška prilikom spremanja";
+                        this.search.loading = false;
+                    })
             }
         },
         computed: {
@@ -200,45 +224,47 @@
         },
         methods: {
             onSubmit: function () {
-                this.$v.$touch()
-                if (!this.$v.$invalid) {
+                if (this.search.selected) {
                     this.loading = true;
-                    if (this.isNew) {
-                        this.item.group = this.$globals.group.group;
-                        this.$http
-                            .post('classrooms/add', this.item)
-                            .then((response) => {
-                                this.items.push(response.data)
-                                this.dialog = false;
-                                this.loading = false;
-                            })
-                            .catch(() => {
-                                this.error = "Greška prilikom spremanja";
-                                this.loading = false;
-                            })
-                    } else {
-                        this.$http
-                            .post('classrooms/update', this.item)
-                            .then((response) => {
-                                this.items.splice(this.items.findIndex(item => item.id == this.item.id), 1, response.data)
-                                this.dialog = false;
-                                this.loading = false;
-                            })
-                            .catch(() => {
-                                this.error = "Greška prilikom spremanja";
-                                this.loading = false;
-                            })
-                    }
+                    this.$http
+                        .post('groups/invite', this.search.selected)
+                        .then(() => {
+                            this.dialog = false;
+                            this.loading = false;
+                        })
+                        .catch(() => {
+                            this.error = "Greška prilikom spremanja";
+                            this.loading = false;
+                        })
+                }
+            },
+            onSubmitRole: function () {
+                if (this.role) {
+                    this.loading = true;
+                    this.$http
+                        .post('groups/users/role', {
+                            role: this.role,
+                            user: this.item.user
+                        })
+                        .then((response) => {
+                            this.items.splice(this.items.indexOf(this.item), 1, response.data)
+                            this.roleDialog = false;
+                            this.loading = false;
+                        })
+                        .catch(() => {
+                            this.error = "Greška prilikom spremanja";
+                            this.loading = false;
+                        })
                 }
             },
             onEdit: function (item) {
                 this.isNew = false;
                 this.item = Object.assign({}, item);
-                this.dialog = true;
+                this.roleDialog = true;
             },
             onDelete: function (item) {
                 this.$http
-                    .post('classrooms/remove', item)
+                    .post('groups/users/remove', item.user)
                     .then(() => {
                         this.items.splice(this.items.findIndex(item => item.id == this.id), 1)
                         this.dialog = false;
@@ -252,7 +278,7 @@
             this.loading = true;
             this
                 .$http
-                .get("classrooms/all")
+                .get("groups/users")
                 .then((response) => {
                     this.items = response.data;
                     this.loading = false;

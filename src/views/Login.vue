@@ -1,76 +1,115 @@
 <template>
-    <div class="section">
-        <div id="card-container" class="container">
-            <div class="card">
-                <div class="card-header">
-                    <p class="card-header-title">
-                        Prijava
-                    </p>
-                </div>
-                <div class="card-content">
-                    <div class="notification is-danger" v-if="has_error">
-                        <p>Error, not able to connect. Try again.</p>
-                    </div>
-                    <form autocomplete="off" @submit.prevent="login" method="post">
-                        <input type="hidden" name="_token" :value="csrf_token">
-                        <div class="field">
-                            <label for="email">E-mail</label>
-                            <div class="control">
-                                <input type="email" id="email" class="input" placeholder="user@example.com"
-                                       v-model="email" required>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <label for="password">Lozinka</label>
-                            <div class="control">
-                                <input type="password" id="password" class="input" v-model="password" required>
-                            </div>
-                        </div>
-                        <button hidden id='send' type="submit">Prijavi Se</button>
-                    </form>
-                </div>
-                <footer class="card-footer">
-                    <button @click="onSubmit" class="button is-info card-footer-item"
-                            style="height: auto; border-radius: 0; padding: 0.6rem">
-                        <span class="has-text-weight-medium" style="font-size: 1.15rem">Potvrdi</span>
-                    </button>
-                </footer>
-            </div>
-        </div>
-    </div>
+    <v-app>
+        <v-main style="background: url('https://picsum.photos/1920/1080')">
+            <v-container class="fill-height">
+                <v-row align="center" justify="center">
+                    <v-col lg="4" md="5" sm="6" cols="10">
+                        <v-card :loading="loading">
+                            <v-card-title class="display-1">
+                                Prijava
+                            </v-card-title>
+                            <v-card-text>
+                                <v-form :disabled="loading">
+                                    <v-text-field
+                                            label="E-mail"
+                                            v-model="email"
+                                            :error-messages="emailErrors"
+                                            required
+                                            @input="$v.email.$touch()"
+                                            @blur="$v.email.$touch()"
+                                            outlined/>
+                                    <v-text-field
+                                            label="Password"
+                                            v-model="password"
+                                            :error-messages="passwordErrors"
+                                            type="password"
+                                            required
+                                            @input="$v.password.$touch()"
+                                            @blur="$v.password.$touch()"
+                                            @keypress.enter="onSubmit"
+                                            outlined/>
+                                    <div class="text-right">
+                                        <router-link :to="{name: 'register'}">
+                                            Nemate račun?
+                                        </router-link>
+                                    </div>
+                                </v-form>
+                            </v-card-text>
+                            <v-card-actions>
+                                <v-btn block color="primary" :disabled="loading" @click="onSubmit">
+                                    LOGIN
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </v-container>
+        </v-main>
+        <v-snackbar v-model="snackbar" right>
+            {{snackbarText}}
+        </v-snackbar>
+    </v-app>
 </template>
 <script>
+    import {email, minLength, required} from "vuelidate/lib/validators";
+    import {setUser} from "../plugins/globals";
+
     export default {
+        name: 'Login',
         data() {
             return {
+                loading: false,
                 email: null,
                 password: null,
-                has_error: false
+                snackbar: false,
+                snackbarText: ""
             }
         },
-        computed: {},
-        mounted() {
-            //
+        validations: {
+            email: {required, email},
+            password: {required, minLength: minLength(8)}
+        },
+        computed: {
+            emailErrors() {
+                const errors = []
+                if (!this.$v.email.$dirty) return errors
+                !this.$v.email.email && errors.push('Mora biti pravilan e-mail')
+                !this.$v.email.required && errors.push('E-mail je obavezan')
+                return errors
+            },
+            passwordErrors() {
+                const errors = []
+                if (!this.$v.password.$dirty) return errors
+                !this.$v.password.minLength && errors.push('Mora biti minimalno 8 znakova')
+                !this.$v.password.required && errors.push('Password je obavezan')
+                return errors
+            },
         },
         methods: {
             onSubmit: function () {
-                this.$axios
-                    .post("auth/login", {
-                        email: this.email,
-                        password: this.password
-                    })
-                    .then((response) => {
-                        localStorage.setItem("jwt", response.data.token);
-                        localStorage.setItem("user", JSON.stringify(response.data.user));
-                        this.$router.push({name: "home"})
-                    });
+                this.$v.$touch()
+                if (!this.$v.$invalid) {
+                    this.loading = true;
+                    this.$http
+                        .post("auth/login", {
+                            email: this.email,
+                            password: this.password
+                        })
+                        .then((response) => {
+                            localStorage.setItem("jwt", response.data.token);
+                            setUser(response.data.user);
+                            this.$router.push({name: "home"})
+                            this.loading = false;
+                        })
+                        .catch((error) => {
+                            if (error.response.status === 400) {
+                                this.snackbarText = "Pogrešna šifra ili e-mail"
+                                this.snackbar = true;
+                            }
+                            this.loading = false;
+                        });
+                }
             }
         }
     }
 </script>
-<style>
-    #card-container {
-        margin-top: 3rem;
-        max-width: 400px;
-    }
-</style>

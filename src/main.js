@@ -1,17 +1,24 @@
 import Vue from 'vue'
-import VueRouter from 'vue-router'
 import App from './App.vue'
-// import './css/style.css'
-import VueFluent from 'vue-fluent'
-import 'vue-fluent/dist/vue-fluent.min.css'
-import "@mdi/font/css/materialdesignicons.css"
-import router from './router'
+import vuetify from './plugins/vuetify';
+import globals from './plugins/globals';
+import router from './router';
+import http_axios from "./plugins/http_axios";
+import vuelidate from "./plugins/vuelidate";
+import vue_moment from "./plugins/vue_moment";
+
 Vue.config.productionTip = false
 
-Vue.router = router
-Vue.use(VueRouter)
-Vue.use(VueFluent)
 new Vue({
-  render: function (h) { return h(App) },
-  router
+    vuetify,
+    http_axios,
+    vuelidate,
+    vue_moment,
+    router,
+    render: function (h) {
+        return h(App)
+    },
+    data: {
+        globals
+    }
 }).$mount('#app')
