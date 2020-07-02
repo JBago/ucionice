@@ -4,7 +4,11 @@ let globals = {
     user: null,
     group: null,
     color: 'primary',
-    dark: true
+    dark: true,
+    snackbar: {
+        text: '',
+        visible: false
+    }
 };
 
 export function setUser(user) {
@@ -25,6 +29,11 @@ export function setGroup(group) {
         let l = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
         globals.dark = l < 0.5;
     }
+}
+
+export function showNotification(text) {
+    globals.snackbar.text = text;
+    globals.snackbar.visible = true;
 }
 
 Vue.use({

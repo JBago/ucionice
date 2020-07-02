@@ -29,36 +29,34 @@
                 </v-chip>
             </template>
             <template v-slot:item.actions="{ item }">
-                <v-btn icon @click="onEdit(item)">
+                <v-btn icon @click="tryEdit(item)">
                     <v-icon dense>
                         edit
                     </v-icon>
                 </v-btn>
-                <v-dialog deleteDialog width="500">
-                    <template v-slot:activator="{ on }">
-                        <v-btn icon v-on="on">
-                            <v-icon dense>
-                                delete
-                            </v-icon>
-                        </v-btn>
-                    </template>
-                    <v-card>
-                        <v-card-title class="headline">
-                            Jeste li sigurni da želite izbrisati?
-                        </v-card-title>
-                        <v-card-actions>
-                            <v-spacer></v-spacer>
-                            <v-btn text @click="deleteDialog = false">
-                                NE
-                            </v-btn>
-                            <v-btn text @click="onDelete(item)">
-                                DA
-                            </v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-dialog>
+                <v-btn icon @click="tryDelete(item)">
+                    <v-icon dense>
+                        delete
+                    </v-icon>
+                </v-btn>
             </template>
         </v-data-table>
+        <v-dialog v-model="deleteDialog" width="500">
+            <v-card>
+                <v-card-title class="headline">
+                    Jeste li sigurni da želite izbrisati?
+                </v-card-title>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn text @click="deleteDialog = false">
+                        NE
+                    </v-btn>
+                    <v-btn text @click="onDelete(item)">
+                        DA
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <v-dialog v-model="dialog" width="400">
             <v-card>
                 <v-card-title class="pt-0 pl-0 pr-0">
@@ -113,9 +111,6 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <v-snackbar v-model="error">
-            {{error}}
-        </v-snackbar>
     </v-container>
 </template>
 <script>
@@ -155,14 +150,12 @@
                 deleteDialog: false,
                 isNew: false,
                 item: {
-
                     id: '',
                     name: '',
                     capacity: '',
                     projector: '',
                     computer: '',
                 },
-                error: null
             }
         },
         validations: {
@@ -209,11 +202,9 @@
                             .post('classrooms/add', this.item)
                             .then((response) => {
                                 this.items.push(response.data)
-                                this.dialog = false;
-                                this.loading = false;
                             })
-                            .catch(() => {
-                                this.error = "Greška prilikom spremanja";
+                            .finally(() => {
+                                this.dialog = false;
                                 this.loading = false;
                             })
                     } else {
@@ -221,30 +212,34 @@
                             .post('classrooms/update', this.item)
                             .then((response) => {
                                 this.items.splice(this.items.findIndex(item => item.id == this.item.id), 1, response.data)
-                                this.dialog = false;
-                                this.loading = false;
                             })
-                            .catch(() => {
-                                this.error = "Greška prilikom spremanja";
+                            .finally(() => {
+                                this.dialog = false;
                                 this.loading = false;
                             })
                     }
                 }
             },
-            onEdit: function (item) {
+            tryEdit: function (item) {
+                this.isNew = false;
+                this.item = Object.assign({}, item);
+                this.dialog = true;
+            },
+            tryDelete: function (item) {
                 this.isNew = false;
                 this.item = Object.assign({}, item);
                 this.dialog = true;
             },
             onDelete: function (item) {
+                this.loading = true;
                 this.$http
                     .post('classrooms/remove', item)
                     .then(() => {
-                        this.items.splice(this.items.findIndex(item => item.id == this.id), 1)
-                        this.dialog = false;
+                        this.items.splice(this.items.findIndex(item => item.id == this.item.id), 1)
                     })
-                    .catch(() => {
-                        this.error = "Greška prilikom spremanja";
+                    .finally(() => {
+                        this.deleteDialog = false;
+                        this.loading = false;
                     })
             }
         },

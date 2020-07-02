@@ -176,7 +176,8 @@
                                 outlined/>
                         <v-menu ref="color"
                                 :close-on-content-click="false"
-                                :return-value.sync="groupForm.color">
+                                :return-value.sync="groupForm.color"
+                                offset-y>
                             <template v-slot:activator="{on}">
                                 <v-text-field
                                         v-model="groupForm.color"
@@ -186,12 +187,27 @@
                                         required
                                         prepend-inner-icon="palette"
                                         :rules="[v => !!v || 'Boja je obavezna']"
-                                        outlined/>
+                                        outlined>
+                                    <template v-slot:prepend-inner>
+                                        <v-card text outlined
+                                                :style="{
+                                                'background-color': groupForm.color,
+                                                'height': '1.5em',
+                                                'width': '1.5em',
+                                                'border-radius': '50%'
+                                        }">
+                                        </v-card>
+                                    </template>
+                                </v-text-field>
                             </template>
-                            <v-color-picker
-                                    width="350"
-                                    v-model="groupForm.color"
-                                    @update:color="colorUpdate"/>
+                            <v-sheet>
+                                <v-color-picker
+                                        width="350"
+                                        v-model="groupForm.color"/>
+                                <v-btn :color="$globals.color" :dark="$globals.dark" @click="$refs.color.save(groupForm.color)" block>
+                                    Odaberi
+                                </v-btn>
+                            </v-sheet>
                         </v-menu>
                         <v-card outlined>
                         </v-card>
@@ -225,6 +241,9 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-snackbar v-model="$globals.snackbar.visible" bottom right>
+            {{$globals.snackbar.text}}
+        </v-snackbar>
     </v-app>
 </template>
 <style lang="scss" scoped>
@@ -240,7 +259,6 @@
 <script>
     import {setGroup, setUser} from "../plugins/globals";
 
-    const debounce = require('debounce');
     export default {
         name: "Layout",
         data: function () {
@@ -255,13 +273,16 @@
                 groupForm: {
                     loading: false,
                     name: "",
-                    color: ""
+                    color: "#ffffffff"
                 }
             };
         },
         methods: {
             onLogout: function () {
                 localStorage.removeItem("jwt");
+                localStorage.removeItem("group");
+                setGroup(null)
+                setUser(null)
                 this.$router.push({name: 'login'});
             },
             onLeave: function () {
@@ -307,15 +328,12 @@
                 this.pickGroup = false;
                 this.$router.push({name: 'home'});
             },
-            colorUpdate: debounce(function () {
-                this.$refs.color.save(this.groupForm.color)
-            }, 1000)
         },
         watch: {
             addGroup: function (value) {
                 if (!value) {
                     this.groupForm.name = "";
-                    this.groupForm.color = "";
+                    this.groupForm.color = "#ffffffff";
                     this.groupForm.loading = false;
                 }
             }
